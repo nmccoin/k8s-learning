@@ -1,0 +1,30 @@
+# Ingress has to be https. tls configuration and allow-http=false annotation are required
+
+apiVersion: apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-<firstname-lastname>-ingress # name of the ingress
+  namespace: <namespace> # Namespace targeted for deployment
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod-azure # Add for auto SSL certificate
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    kubernetes.io/ingress.allow-http: "false" # Required for Gatekeeper admission
+    nginx.ingress.kubernetes.io/rewrite-target: / # needs comment
+spec:
+  tls:
+    - hosts:
+        - hello-<firstname-lastname>.dev.cloud.providence.org # for example, in the dev/test cluster this would be <app>.dev.cloud.providence.org
+      secretName: hello-<firstname-lastname>-tls
+  rules:
+    - host: hello-<firstname-lastname>.dev.cloud.providence.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hello-<firstname-lastname>-service
+                port:
+                  number: 443

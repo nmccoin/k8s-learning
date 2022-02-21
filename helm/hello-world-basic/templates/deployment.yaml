@@ -1,0 +1,53 @@
+# Always have to specify the api version used for the resource being deployed
+apiVersion: apps/v1
+# kind refers to the type of resource you want to deploy (Pod, Service, Deployment)
+kind: Deployment
+# Metadata examples are: namespace to deploy to, app name, etc
+metadata:
+  name: demo-<firstname-lastname> # Name of the deployed pods
+  namespace: <namespace> # Namespace targeted for deployment
+  labels: # All deployments must have an `owner, app, environment and costCenter` labels
+    owner: "<firstname.lastname>.providence.org" # Contact email for app owner
+    app: app-<firstname-lastname> # the name of app
+    environment: "dev" # dev, test, prod
+    costCenter: "00000000" # cost center is required for chargeback/showback
+spec:
+  selector:
+    matchLabels:
+      app: app-<firstname-lastname>
+  replicas: 1 # number of deployed containers in the replicaset - specifying more than 1 provides redundancy
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/hello-world: runtime/default # apparmor required for admission control
+      # spec - this is the desired state of the deployment, for example, what container image
+      # you wish to deploy, how many copies, etc
+      labels:
+        app: app-<firstname-lastname> # Name to be leveraged in the Service configuration and container spec
+    spec:
+      securityContext: # Required for admission control
+        fsGroup: 150 # directory will have group ID 101 - Valid range 100-1100
+        runAsUser: 150 # Container cannot run as root user on the node - Valid range 100-1100
+        runAsGroup: 150 # Valid range 100-1100
+        supplementalGroups: [200] # Valid range 100-1100
+      containers:
+        - name: hello-world
+          image: docker.io/dslaterak/hello-world:latest # This is where you specify your image location, name, and version to deploy
+          imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false # Ensures no child process in container can gain more privileges than it's parent
+            privileged: false # enforce container cannot run as root
+          resources:
+            # Must set min limits for your requested resources
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            # Must set max limits for your requested resources
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+          ports:
+            - containerPort: 9000
+      # Assign your workload to the correct server pool
+      nodeSelector:
+        nodepool: user

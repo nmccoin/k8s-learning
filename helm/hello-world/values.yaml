@@ -1,0 +1,48 @@
+# Default values for hello-world.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+nameSpace: demo-dan-slater
+
+appName: sleddogs #name of the deployed app
+
+labels:
+  owner: dan.slater.providence.org
+  environment: test #What app environemnt is this? dev, test, prod?
+  costCenter: 00000000 #What is your valid cost center?
+
+securityContext:
+  fsGroup: 150 #directory group id number
+  runAsUser: 150 #uid of user running process - cannot run as root
+  runAsGroup: 150 #guid of group user belongs to
+
+replicaCount: 2 #number of deployed containers in the replicaset - specifying more than 1 provides redundancy
+
+containers:
+  name: hello-world #name of deployed containers
+  image:
+    repository: docker.io/dslaterak/hello-world:latest #location to find containers
+    pullPolicy: Always #define how often deployment should refresh the container when deploying
+  securityContext:
+    privilegeEsc: false #container cannot have privilege access to host
+    priviledged: false #container cannot run as root
+  nodePool: user
+
+resources:
+  requests:
+    cpu: 150m
+    memory: 64Mi
+  limits:
+    cpu: 350m
+    memory: 128Mi
+
+ports:
+  protocol: TCP #ip protocol of traffic
+  containerPort: 9000 #port container is communicating on
+  ingressPort: 443 #port traffic is hitting ingress on
+
+tls:
+  host: dev #dns subdomain used by k8s cluster
+  tlsName: sleddogs-tls
+

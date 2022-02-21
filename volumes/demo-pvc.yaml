@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: persistent-claim-photos
+  # Set this annotation to NOT let k8s automatically create a pv for the claim, but to pick a persistant storage
+  # from an existing pool
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ""
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      usage: demo-app #label used in the creation of PV
+  volumeMode: Filesystem
+

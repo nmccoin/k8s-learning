@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-<firstname-lastname>-service # Name of the service (leverage in ingress config)
+  namespace: <namespace> # Namespace targeted for deployment
+spec:
+  ports:
+    - protocol: TCP
+      port: 443 # Port service is expecting incoming traffic
+      targetPort: 9000 # Port the container is listening to
+  sessionAffinity: ClientIP # Clients will maintain a connection to the pod they first hit for up to 3 hrs
+  selector:
+    app: app-<firstname-lastname> # Name defined in the Deployment

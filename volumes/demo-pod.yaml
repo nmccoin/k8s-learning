@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: demo-photo-app
+  labels:
+    name: demo-photo-app
+spec:
+  containers:
+    - name: demo-photo-app
+      image: <Image>
+      volumeMounts:
+        - mountPath: "/usr/share/photo"
+          name: pic-volume
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "250m"
+        limits:
+          memory: "128Mi"
+          cpu: "500m"
+      ports:
+        - containerPort: 9000
+  volumes:
+    - name: pic-volume
+      persistentVolumeClaim:
+        claimName: persistent-claim-photos

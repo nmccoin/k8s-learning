@@ -1,0 +1,18 @@
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentity
+metadata:
+  name: aad-user-identity # Name of Azure Identity
+  namespace: aad-pod-identity-poc # Namespace where this AzureIdentity will be created
+spec:
+  type: 0 # User Assigned Identity
+  resourceID: /subscriptions/99a3af26-911d-4bc5-8fcc-8f9de81e46c5/resourceGroups/rg-westus2-shared/providers/Microsoft.ManagedIdentity/userAssignedIdentities/aks-aad-user-identity
+  clientID: 248b3285-aa4c-436f-b0da-8ab35ba2d14a
+---
+apiVersion: "aadpodidentity.k8s.io/v1"
+kind: AzureIdentityBinding
+metadata:
+  name: aad-user-identity-binding
+  namespace: aad-pod-identity-poc
+spec:
+  azureIdentity: aad-user-identity
+  selector: "bind-user-identity-keyvault"

@@ -1,0 +1,53 @@
+# Always have to specify the api version used for the resource being deployed
+apiVersion: apps/v1
+# kind refers to the type of resource you want to deploy (Pod, Service, Deployment)
+kind: Deployment
+# Metadata examples are: namespace to deploy to, app name, etc
+metadata:
+  name: {{ .Release.Name }}-demo # Name of the deployed pods
+  namespace: {{ .Values.Namespace }} # Namespace targeted for deployment
+  labels: # All deployments must have an `owner, app, environment and costCenter` labels
+    owner: "{{ .Values.labels.owner }}" # Contact email for app owner
+    app: {{ .Values.appName }} # the name of app
+    environment: "{{ .Values.labels.environment }}" # dev, test, prod
+    costCenter: "{{ .Values.labels.costCenter }}" # cost center is required for chargeback/showback
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  replicas: {{ .Values.replicaCount }} # The number of pods you wish to have available
+  template:
+    metadata:
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/{{ .Values.containers.name }}: runtime/default # apparmor required for admission control
+        # spec - this is the desired state of the deployment, for example, what container image
+        # you wish to deploy, how many copies, etc
+      labels:
+        app: {{ .Values.appName }} # Name to be leveraged in the Service configuration and container spec
+    spec:
+      securityContext: # Required for admission control
+        fsGroup: {{ .Values.securityContext.fsGroup }} # directory will have group ID 101 - Valid range 100-1100
+        runAsUser: {{ .Values.securityContext.runAsUser }} # Container cannot run as root user on the node - Valid range 100-1100
+        runAsGroup: {{ .Values.securityContext.runAsGroup }} # Valid range 100-1100
+        supplementalGroups: [200] # Valid range 100-1100
+      containers:
+        - name: {{ .Values.containers.name }}
+          image: {{ .Values.containers.image.repository }} # This is where you specify your image location, name, and version to deploy
+          imagePullPolicy: {{ .Values.containers.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: {{ .Values.containers.securityContext.privilegeEsc }} # Ensures no child process in container can gain more privileges than it's parent
+            privileged: {{ .Values.containers.securityContext.priviledged }} # enforce container cannot run as root
+          resources:
+            # Must set min limits for your requested resources
+            requests:
+              memory: "{{ .Values.resources.requests.memory }}"
+              cpu: "{{ .Values.resources.requests.cpu }}"
+            # Must set max limits for your requested resources
+            limits:
+              memory: "{{ .Values.resources.limits.memory }}"
+              cpu: "{{ .Values.resources.limits.cpu }}"
+          ports:
+            - containerPort: {{ .Values.ports.containerPort }}
+      # Assign your workload to the correct server pool
+      nodeSelector:
+        agentpool: {{ .Values.containers.nodePool}}

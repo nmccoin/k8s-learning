@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: az-keyvault-reader-test
+  namespace: aad-pod-identity-poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: az-keyvault-reader-test
+      aadpodidbinding: bind-user-identity-keyvault
+  template:
+    metadata:
+      labels:
+        app: az-keyvault-reader-test
+        aadpodidbinding: bind-user-identity-keyvault
+    spec:
+      containers:
+        - name: busybox
+          image: busybox
+          command:
+            [
+              "sh",
+              "-c",
+              "wget --tries=70 -qO- http://127.0.0.1:8333/secrets/grafana-admin-username-poc/",
+            ]
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "4Mi"
+              cpu: "100m"
+            limits:
+              memory: "8Mi"
+              cpu: "200m"
+        - name: az-keyvault-reader-sidecar
+          image: cmendibl3/az-keyvault-reader:0.2
+          imagePullPolicy: Always
+          env:
+            - name: AZURE_KEYVAULT_NAME
+              value: kv-westus2-aks
+          resources:
+            requests:
+              memory: "8Mi"
+              cpu: "100m"
+            limits:
+              memory: "16Mi"
+              cpu: "200m"
+      restartPolicy: Always
